@@ -1,10 +1,15 @@
 package com.blog.app.service;
 
+import com.blog.app.dto.PaginatedPostData;
 import com.blog.app.dto.PostDto;
 import com.blog.app.entity.Post;
 import com.blog.app.exception.ResourceNotFoundException;
 import com.blog.app.repository.PostRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -45,14 +50,29 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
+    public PaginatedPostData getAllPostsByPagination(int pageNo, int pageSize, String sortBy) {
+        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+        Page<Post> posts = postRepository.findAll(pageable);
+        List<Post> postList = posts.getContent();
+        List<PostDto> postDtoList = postList.stream().map(post -> convertPostToDto(post)).collect(Collectors.toList());
+        return PaginatedPostData.builder()
+                .postList(postDtoList)
+                .pageNo(posts.getNumber())
+                .pageSize(posts.getSize())
+                .totalPages(posts.getTotalPages())
+                .totalElements(posts.getTotalElements())
+                .isLastPage(posts.isLast()).build();
+    }
+
+    @Override
     public PostDto getPostById(long id) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: "+id+" is not found"));
+        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " is not found"));
         return convertPostToDto(post);
     }
 
     @Override
     public PostDto updatePost(long id, PostDto postDto) {
-        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: "+id+" is not found"));
+        Post post = postRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post with id: " + id + " is not found"));
         Post editedPost = Post.builder().id(id)
                 .content(postDto.getContent())
                 .description(postDto.getDescription())
@@ -70,7 +90,7 @@ public class PostServiceImpl implements PostService {
 
 
     //convert Post to PostDto
-    public PostDto convertPostToDto(Post post){
+    public PostDto convertPostToDto(Post post) {
         return PostDto.builder()
                 .id(post.getId())
                 .content(post.getContent())
