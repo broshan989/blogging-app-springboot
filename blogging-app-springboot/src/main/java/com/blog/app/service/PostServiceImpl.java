@@ -50,11 +50,18 @@ public class PostServiceImpl implements PostService {
     }
 
     @Override
-    public PaginatedPostData getAllPostsByPagination(int pageNo, int pageSize, String sortBy) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize, Sort.by(sortBy));
+    public PaginatedPostData getAllPostsByPagination(int pageNo, int pageSize, String sortBy, String sortDirection) {
+
+        Sort sort = sortDirection.equalsIgnoreCase(Sort.Direction.ASC.name())
+                    ? Sort.by(sortBy).ascending()
+                    : Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(pageNo, pageSize, sort);
         Page<Post> posts = postRepository.findAll(pageable);
         List<Post> postList = posts.getContent();
+
         List<PostDto> postDtoList = postList.stream().map(post -> convertPostToDto(post)).collect(Collectors.toList());
+
         return PaginatedPostData.builder()
                 .postList(postDtoList)
                 .pageNo(posts.getNumber())

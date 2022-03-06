@@ -36,8 +36,9 @@ public class PostController {
     @GetMapping("get")
     public ResponseEntity<PaginatedPostData> getPostsByPagination(@RequestParam(name = "pageNo", defaultValue = "0") int pageNO,
             @RequestParam(name = "pageSize", defaultValue = "5") int pageSize,
-            @RequestParam(name = "sortBy", defaultValue = "id", required = false) String sortBy) {
-        return ResponseEntity.ok(postService.getAllPostsByPagination(pageNO, pageSize, sortBy));
+            @RequestParam(name = "sortBy", defaultValue = "id", required = false) String sortBy,
+            @RequestParam(name="sortDirection", defaultValue = "desc", required = false) String sortDirection) {
+        return ResponseEntity.ok(postService.getAllPostsByPagination(pageNO, pageSize, sortBy, sortDirection));
     }
 
     //rest endpoint for get post by id
